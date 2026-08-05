@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnostic B2 — Temps, pronoms relatifs et connecteurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest: #1B4332;
+    --forest-dark: #0F2A1E;
+    --gold: #C9A227;
+    --gold-light: #E8D8A6;
+    --paper: #F7F3EA;
+    --paper-warm: #EFE7D6;
+    --ink: #232323;
+    --brown: #4A2E1F;
+    --ok: #2E7D4F;
+    --ok-bg: #E4F2E9;
+    --bad: #A83232;
+    --bad-bg: #F7E6E4;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:'Inter', sans-serif; line-height:1.55; }
+  .wrap{ max-width: 880px; margin:0 auto; padding: 0 24px 80px; }
+
+  .hero{
+    background: linear-gradient(155deg, var(--forest) 0%, var(--forest-dark) 100%);
+    color: var(--paper); padding: 52px 24px 60px; position: relative; overflow:hidden;
+  }
+  .hero::before{
+    content:""; position:absolute; right:-60px; top:-60px; width:260px; height:260px; border-radius:50%;
+    background: radial-gradient(circle, rgba(201,162,39,0.25) 0%, transparent 70%);
+  }
+  .hero-inner{ max-width:880px; margin:0 auto; position:relative; }
+  .eyebrow{ font-size:13px; letter-spacing:.14em; text-transform:uppercase; color: var(--gold-light); font-weight:600; margin-bottom:14px; }
+  h1{ font-family:'Fraunces', serif; font-weight:700; font-size: clamp(30px, 4.6vw, 44px); line-height:1.1; margin:0 0 16px; }
+  .hero p{ max-width:640px; color:#E7E0CE; font-size:15.5px; margin:0 0 22px;}
+  .badges{ display:flex; gap:10px; flex-wrap:wrap; }
+  .badge{ border:1px solid rgba(232,216,166,0.45); color:var(--gold-light); font-size:13px; padding:6px 14px; border-radius:999px; }
+
+  section{ margin-top:56px; }
+  .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:6px; }
+  .sec-num{
+    font-family:'Fraunces', serif; font-weight:700; font-size:15px; color: var(--gold);
+    border:1px solid var(--gold); border-radius:50%; width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  h2{ font-family:'Fraunces', serif; font-size: 25px; margin:0; color: var(--forest-dark); }
+  .sec-desc{ color:#5b5648; font-size:15px; margin: 4px 0 26px 44px; max-width:640px;}
+  .focus-tags{ display:flex; gap:8px; flex-wrap:wrap; margin: 44px 0 22px; }
+  .focus-tag{
+    font-size:12.5px; font-weight:600; color:var(--forest-dark); background:var(--gold-light);
+    padding:5px 12px; border-radius:999px;
+  }
+
+  .card{
+    background:#fff; border:1px solid #E4DCC8; border-radius:14px; padding:22px 24px;
+    margin-bottom:16px; box-shadow: 0 1px 2px rgba(30,20,10,0.04);
+  }
+  .q-text{ font-size:15.5px; font-weight:600; margin-bottom:14px; }
+  .q-text .blank-tag{ color:var(--brown); background:var(--paper-warm); padding:1px 8px; border-radius:6px; font-weight:700; }
+  .q-text .cat-tag{ font-size:11.5px; font-weight:600; color:var(--forest); background:var(--paper-warm); padding:2px 9px; border-radius:999px; margin-left:8px; vertical-align:middle;}
+  .options{ display:grid; gap:9px; }
+  label.opt{
+    display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid #E4DCC8;
+    border-radius:9px; cursor:pointer; font-size:14.5px; transition: border-color .15s, background .15s;
+  }
+  label.opt:hover{ border-color: var(--gold); background: #FCF9F1;}
+  label.opt input{ accent-color: var(--forest); }
+  label.opt.correct{ border-color: var(--ok); background: var(--ok-bg); }
+  label.opt.incorrect{ border-color: var(--bad); background: var(--bad-bg); }
+  .explain{
+    margin-top:12px; font-size:13.5px; color:#5b5648; border-left:3px solid var(--gold); padding:8px 14px;
+    background: var(--paper-warm); border-radius: 0 8px 8px 0; display:none;
+  }
+  .explain.show{ display:block; }
+
+  .btn{
+    background: var(--forest); color:#fff; border:none; font-family:'Inter',sans-serif; font-weight:600;
+    font-size:14.5px; padding:13px 26px; border-radius:9px; cursor:pointer; transition: background .15s, transform .1s;
+  }
+  .btn:hover{ background: var(--forest-dark); }
+  .btn:active{ transform: scale(0.98); }
+  .btn.ghost{ background:transparent; color: var(--forest); border:1px solid var(--forest); }
+  .btn.ghost:hover{ background: var(--paper-warm); }
+
+  .score-box{
+    margin-top:18px; padding:16px 20px; border-radius:10px; background: var(--forest); color:#fff;
+    font-weight:600; font-size:15px; display:none; align-items:center; gap:10px;
+  }
+  .score-box.show{ display:flex; }
+
+  .cloze-text{
+    background:#fff; border:1px solid #E4DCC8; border-radius:14px; padding:28px 30px;
+    font-size:15.5px; line-height:1.9;
+  }
+  .cloze-text input{
+    width: 132px; border:none; border-bottom: 2px solid var(--gold); background: var(--paper-warm);
+    font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600; padding: 3px 8px; text-align:center;
+    color: var(--brown); border-radius: 4px 4px 0 0;
+  }
+  .cloze-text input:focus{ outline:none; border-bottom-color: var(--forest); background:#fff; }
+  .cloze-text input.ok{ background: var(--ok-bg); border-bottom-color: var(--ok); color: var(--ok); }
+  .cloze-text input.bad{ background: var(--bad-bg); border-bottom-color: var(--bad); color: var(--bad); }
+  .hint{ font-size:11px; color:#8a836f; vertical-align: super; }
+
+  /* ACTIVITE 3 : TRI DES CONNECTEURS */
+  .sort-pool{
+    background:#fff; border:1px dashed #C9BFA3; border-radius:14px; padding:20px;
+    display:flex; flex-wrap:wrap; gap:10px; margin-bottom:22px; min-height:60px;
+  }
+  .chip{
+    background: var(--forest); color:#fff; font-size:14px; font-weight:600;
+    padding:9px 16px; border-radius:999px; cursor:pointer; border:2px solid transparent;
+    transition: transform .1s, background .15s;
+    user-select:none;
+  }
+  .chip:hover{ background: var(--forest-dark); }
+  .chip.selected{ border-color: var(--gold); transform: scale(1.05); }
+  .chip.placed{ background: var(--gold); color: var(--forest-dark); }
+  .chip.correct{ background: var(--ok); color:#fff; }
+  .chip.incorrect{ background: var(--bad); color:#fff; }
+
+  .zones{ display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:14px; }
+  .zone{
+    background:#fff; border:2px solid #E4DCC8; border-radius:14px; padding:16px; min-height:120px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .zone-title{ font-family:'Fraunces', serif; font-weight:600; font-size:15px; color:var(--forest-dark); margin-bottom:4px; }
+  .zone-chips{ display:flex; flex-wrap:wrap; gap:8px; min-height: 34px; }
+  .zone.active-target{ border-color: var(--gold); background: #FFFBF0; }
+  .instructions-box{
+    background: var(--paper-warm); border-radius:10px; padding:14px 18px; font-size:14px;
+    color: var(--brown); margin-bottom:20px; border-left:3px solid var(--gold);
+  }
+
+  footer{ margin-top:64px; padding-top:24px; border-top:1px solid #E4DCC8; color:#8a836f; font-size:13px; text-align:center; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Diagnostic grammatical n°3 — complémentaire</div>
+    <h1>Temps verbaux, pronoms relatifs<br>et connecteurs logiques</h1>
+    <p>Ce diagnostic se concentre exclusivement sur trois points : les temps et modes verbaux, les pronoms relatifs et les connecteurs logiques. Trois activités variées, sans discours rapporté.</p>
+    <div class="badges">
+      <span class="badge">Niveau visé : B2</span>
+      <span class="badge">3 activités</span>
+      <span class="badge">Autocorrection immédiate</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ACTIVITÉ 1 : QCM -->
+  <section id="qcm-section">
+    <div class="sec-head">
+      <span class="sec-num">1</span>
+      <h2>Questionnaire à choix multiples</h2>
+    </div>
+    <p class="sec-desc">12 questions mêlant temps verbaux, pronoms relatifs et connecteurs logiques. Choisissez la seule réponse correcte, puis cliquez sur « Vérifier mes réponses ».</p>
+
+    <div id="qcm-list"></div>
+
+    <button class="btn" id="qcm-check">Vérifier mes réponses</button>
+    <div class="score-box" id="qcm-score"></div>
+  </section>
+
+  <!-- ACTIVITÉ 2 : TEXTE À TROUS -->
+  <section id="cloze-section">
+    <div class="sec-head">
+      <span class="sec-num">2</span>
+      <h2>Texte à trous — Le Parc National Naturel du Puracé</h2>
+    </div>
+    <p class="sec-desc">Complétez le texte en conjuguant les verbes entre crochets ou en choisissant le pronom relatif / connecteur qui convient. Cliquez ensuite sur « Vérifier ».</p>
+
+    <div class="cloze-text" id="cloze-text"></div>
+
+    <div style="margin-top:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <button class="btn" id="cloze-check">Vérifier</button>
+      <button class="btn ghost" id="cloze-reset">Réinitialiser</button>
+    </div>
+    <div class="score-box" id="cloze-score"></div>
+  </section>
+
+  <!-- ACTIVITÉ 3 : TRI DES CONNECTEURS -->
+  <section id="sort-section">
+    <div class="sec-head">
+      <span class="sec-num">3</span>
+      <h2>Triez les connecteurs logiques</h2>
+    </div>
+    <p class="sec-desc">Classez les 15 connecteurs ci-dessous dans la bonne catégorie selon leur fonction logique.</p>
+
+    <div class="instructions-box">
+      Cliquez sur un connecteur pour le sélectionner (il s'entoure d'un contour doré), puis cliquez sur la catégorie de votre choix pour l'y déposer. Pour retirer un connecteur mal placé, cliquez dessus dans sa catégorie : il retourne dans la liste.
+    </div>
+
+    <div class="sort-pool" id="sort-pool"></div>
+
+    <div class="zones" id="sort-zones"></div>
+
+    <div style="margin-top:20px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <button class="btn" id="sort-check">Vérifier le classement</button>
+      <button class="btn ghost" id="sort-reset">Réinitialiser</button>
+    </div>
+    <div class="score-box" id="sort-score"></div>
+  </section>
+
+  <footer>
+    Diagnostic conçu comme complément des séances précédentes — préparation au DELF B2, Cauca, Colombie.
+  </footer>
+</div>
+
+<script>
+/* =================== ACTIVITÉ 1 : QCM =================== */
+const qcmData = [
+  {
+    text: "Quand nous <span class='blank-tag'>______</span> (arriver) à Popayán, il pleuvait déjà depuis deux heures. <span class='cat-tag'>temps verbal</span>",
+    options: ["sommes arrivés", "arrivions", "étions arrivés", "arriverions"],
+    correct: 0,
+    explain: "Passé composé pour l'action ponctuelle (l'arrivée) qui interrompt une action en cours exprimée à l'imparfait (il pleuvait)."
+  },
+  {
+    text: "Si j'avais plus de temps libre, je <span class='blank-tag'>______</span> (visiter) plus souvent le parc de Puracé. <span class='cat-tag'>temps verbal</span>",
+    options: ["visiterais", "visite", "aurais visité", "visitais"],
+    correct: 0,
+    explain: "Hypothèse potentielle : si + imparfait, puis conditionnel présent dans la principale."
+  },
+  {
+    text: "Dès que la saison des pluies <span class='blank-tag'>______</span> (commencer), les rivières montent rapidement dans la région. <span class='cat-tag'>temps verbal</span>",
+    options: ["commence", "aura commencé", "commençait", "commencerait"],
+    correct: 0,
+    explain: "Vérité générale / habitude : présent de l'indicatif des deux côtés de « dès que »."
+  },
+  {
+    text: "Il est possible que la route <span class='blank-tag'>______</span> (être) fermée à cause des glissements de terrain. <span class='cat-tag'>temps verbal</span>",
+    options: ["est", "soit", "était", "sera"],
+    correct: 1,
+    explain: "« Il est possible que » exprime une possibilité incertaine : elle est suivie du subjonctif présent."
+  },
+  {
+    text: "Je regrette que nous ne <span class='blank-tag'>______</span> (pouvoir) pas visiter la réserve naturelle la semaine dernière. <span class='cat-tag'>temps verbal</span>",
+    options: ["pouvons", "puissions", "ayons pu", "pouvions"],
+    correct: 2,
+    explain: "Regret portant sur une action passée : subjonctif passé après une expression de sentiment (je regrette que)."
+  },
+  {
+    text: "C'est un guide touristique <span class='blank-tag'>______</span> connaît très bien l'histoire de la région. <span class='cat-tag'>pronom relatif</span>",
+    options: ["que", "qui", "dont", "où"],
+    correct: 1,
+    explain: "« Qui » remplace le sujet du verbe « connaît » : le guide connaît l'histoire."
+  },
+  {
+    text: "Le musée <span class='blank-tag'>______</span> nous avons visité hier se trouve dans le centre historique de Popayán. <span class='cat-tag'>pronom relatif</span>",
+    options: ["qui", "dont", "que", "où"],
+    correct: 2,
+    explain: "« Que » remplace le complément d'objet direct du verbe « avons visité » : nous avons visité le musée."
+  },
+  {
+    text: "La forêt tropicale <span class='blank-tag'>______</span> dépend l'équilibre écologique de la région est aujourd'hui menacée. <span class='cat-tag'>pronom relatif</span>",
+    options: ["qui", "dont", "laquelle", "où"],
+    correct: 1,
+    explain: "« Dépendre de » se construit avec « de » : on utilise donc « dont » pour remplacer ce complément."
+  },
+  {
+    text: "Voici le village <span class='blank-tag'>______</span> mes grands-parents ont grandi. <span class='cat-tag'>pronom relatif</span>",
+    options: ["dont", "que", "où", "lequel"],
+    correct: 2,
+    explain: "« Où » indique le lieu : mes grands-parents ont grandi dans ce village."
+  },
+  {
+    text: "La production de café a beaucoup diminué, <span class='blank-tag'>______</span> de nombreux agriculteurs ont dû changer d'activité. <span class='cat-tag'>connecteur</span>",
+    options: ["parce que", "c'est pourquoi", "bien que", "pour que"],
+    correct: 1,
+    explain: "« C'est pourquoi » introduit la conséquence d'un fait déjà énoncé."
+  },
+  {
+    text: "<span class='blank-tag'>______</span> les conditions climatiques soient difficiles, les producteurs continuent de cultiver le café. <span class='cat-tag'>connecteur</span>",
+    options: ["Bien que", "Parce que", "Donc", "Pourvu que"],
+    correct: 0,
+    explain: "« Bien que » (+ subjonctif) exprime une concession : malgré cette difficulté, l'action continue."
+  },
+  {
+    text: "Les autorités ont investi dans les routes <span class='blank-tag'>______</span> les habitants puissent accéder plus facilement aux marchés. <span class='cat-tag'>connecteur</span>",
+    options: ["parce que", "afin que", "puisque", "alors que"],
+    correct: 1,
+    explain: "« Afin que » (+ subjonctif) exprime le but recherché par l'action."
+  }
+];
+
+const qcmList = document.getElementById('qcm-list');
+qcmData.forEach((q, i) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="q-text">${i+1}. ${q.text}</div>
+    <div class="options">
+      ${q.options.map((opt, j) => `
+        <label class="opt" data-q="${i}" data-opt="${j}">
+          <input type="radio" name="q${i}" value="${j}">
+          ${opt}
+        </label>
+      `).join('')}
+    </div>
+    <div class="explain" id="explain-${i}">${q.explain}</div>
+  `;
+  qcmList.appendChild(card);
+});
+
+document.getElementById('qcm-check').addEventListener('click', () => {
+  let score = 0;
+  qcmData.forEach((q, i) => {
+    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+    const labels = document.querySelectorAll(`label[data-q="${i}"]`);
+    labels.forEach(l => l.classList.remove('correct','incorrect'));
+    const correctLabel = document.querySelector(`label[data-q="${i}"][data-opt="${q.correct}"]`);
+    if (selected) {
+      const chosenVal = parseInt(selected.value);
+      if (chosenVal === q.correct) {
+        score++;
+        correctLabel.classList.add('correct');
+      } else {
+        document.querySelector(`label[data-q="${i}"][data-opt="${chosenVal}"]`).classList.add('incorrect');
+        correctLabel.classList.add('correct');
+      }
+    } else {
+      correctLabel.classList.add('correct');
+    }
+    document.getElementById(`explain-${i}`).classList.add('show');
+  });
+  const box = document.getElementById('qcm-score');
+  box.classList.add('show');
+  box.textContent = `Score : ${score} / 12 — ` + (score >= 10 ? "Très solide maîtrise, prêt pour l'entraînement intensif." : score >= 6 ? "Bases présentes, quelques points à revoir ensemble." : "Un retour ciblé sur ces structures est recommandé avant l'entraînement DELF.");
+});
+
+/* =================== ACTIVITÉ 2 : TEXTE À TROUS =================== */
+const clozeSegments = [
+  "Le Parc National Naturel du Puracé, qui ",
+  {id:1, answers:["se trouve"], hint:"se trouver, présent"},
+  " dans le département du Cauca, est un site ",
+  {id:2, answers:["qui"], hint:"pronom relatif, sujet"},
+  " attire chaque année de nombreux randonneurs. Lorsque les premiers explorateurs ",
+  {id:3, answers:["sont arrivés"], hint:"arriver, passé composé"},
+  " dans la région au XIXe siècle, ils ",
+  {id:4, answers:["étaient"], hint:"être, imparfait"},
+  " impressionnés par la beauté du volcan. Le sentier ",
+  {id:5, answers:["que","qu'"], hint:"pronom relatif, COD"},
+  " empruntent les visiteurs traverse plusieurs écosystèmes différents. Si les autorités ",
+  {id:6, answers:["investissaient"], hint:"investir, imparfait"},
+  " davantage dans l'entretien des sentiers, le tourisme ",
+  {id:7, answers:["se développerait"], hint:"se développer, conditionnel présent"},
+  " encore plus. ",
+  {id:8, answers:["Bien que"], hint:"connecteur de concession"},
+  " l'ascension soit difficile, de nombreux touristes atteignent le sommet chaque année. Il est essentiel que les visiteurs ",
+  {id:9, answers:["respectent"], hint:"respecter, subjonctif présent"},
+  " les règles du parc, ",
+  {id:10, answers:["afin que"], hint:"connecteur de but"},
+  " cet écosystème fragile soit préservé pour les générations futures. La région ",
+  {id:11, answers:["dont"], hint:"pronom relatif"},
+  " la biodiversité est exceptionnelle attire aussi des chercheurs du monde entier. Depuis que ce parc ",
+  {id:12, answers:["a été"], hint:"être, passé composé"},
+  " classé réserve naturelle, la faune locale s'est nettement régénérée."
+];
+
+const clozeContainer = document.getElementById('cloze-text');
+clozeSegments.forEach(seg => {
+  if (typeof seg === 'string') {
+    clozeContainer.appendChild(document.createTextNode(seg));
+  } else {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `blank-${seg.id}`;
+    input.dataset.answers = JSON.stringify(seg.answers);
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    clozeContainer.appendChild(input);
+    const sup = document.createElement('span');
+    sup.className = 'hint';
+    sup.textContent = ` (${seg.id})`;
+    clozeContainer.appendChild(sup);
+  }
+});
+
+function normalize(str){ return str.trim().toLowerCase().replace(/\s+/g,' '); }
+
+document.getElementById('cloze-check').addEventListener('click', () => {
+  let score = 0, total = 0;
+  clozeSegments.forEach(seg => {
+    if (typeof seg !== 'string') {
+      total++;
+      const input = document.getElementById(`blank-${seg.id}`);
+      const answers = JSON.parse(input.dataset.answers).map(normalize);
+      input.classList.remove('ok','bad');
+      if (answers.includes(normalize(input.value))) {
+        input.classList.add('ok'); score++;
+      } else {
+        input.classList.add('bad');
+        input.title = 'Réponse attendue : ' + JSON.parse(input.dataset.answers)[0];
+      }
+    }
+  });
+  const box = document.getElementById('cloze-score');
+  box.classList.add('show');
+  box.textContent = `Score : ${score} / ${total} — Les champs en rouge indiquent une erreur (survolez le champ pour voir la réponse attendue).`;
+});
+
+document.getElementById('cloze-reset').addEventListener('click', () => {
+  clozeSegments.forEach(seg => {
+    if (typeof seg !== 'string') {
+      const input = document.getElementById(`blank-${seg.id}`);
+      input.value = ''; input.classList.remove('ok','bad'); input.removeAttribute('title');
+    }
+  });
+  document.getElementById('cloze-score').classList.remove('show');
+});
+
+/* =================== ACTIVITÉ 3 : TRI DES CONNECTEURS =================== */
+const categories = [
+  { id: 'cause', title: 'Cause' },
+  { id: 'consequence', title: 'Conséquence' },
+  { id: 'opposition', title: 'Opposition / Concession' },
+  { id: 'condition', title: 'Condition' },
+  { id: 'but', title: 'But' }
+];
+
+const connectors = [
+  { id:'c1', text:'car', cat:'cause' },
+  { id:'c2', text:'parce que', cat:'cause' },
+  { id:'c3', text:'puisque', cat:'cause' },
+  { id:'c4', text:'donc', cat:'consequence' },
+  { id:'c5', text:'par conséquent', cat:'consequence' },
+  { id:'c6', text:"c'est pourquoi", cat:'consequence' },
+  { id:'c7', text:'mais', cat:'opposition' },
+  { id:'c8', text:'cependant', cat:'opposition' },
+  { id:'c9', text:'bien que', cat:'opposition' },
+  { id:'c10', text:'si', cat:'condition' },
+  { id:'c11', text:'pourvu que', cat:'condition' },
+  { id:'c12', text:'à moins que', cat:'condition' },
+  { id:'c13', text:'pour que', cat:'but' },
+  { id:'c14', text:'afin que', cat:'but' },
+  { id:'c15', text:'de façon à ce que', cat:'but' }
+];
+
+// shuffle for display
+const shuffled = [...connectors].sort(() => Math.random() - 0.5);
+
+const pool = document.getElementById('sort-pool');
+const zonesContainer = document.getElementById('sort-zones');
+let selectedChipId = null;
+const placement = {}; // chipId -> categoryId
+
+function renderPool(){
+  pool.innerHTML = '';
+  shuffled.forEach(c => {
+    if (!placement[c.id]) {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (selectedChipId === c.id ? ' selected' : '');
+      chip.textContent = c.text;
+      chip.dataset.id = c.id;
+      chip.addEventListener('click', () => {
+        selectedChipId = (selectedChipId === c.id) ? null : c.id;
+        renderPool();
+        renderZones();
+      });
+      pool.appendChild(chip);
+    }
+  });
+}
+
+function renderZones(){
+  zonesContainer.innerHTML = '';
+  categories.forEach(cat => {
+    const zone = document.createElement('div');
+    zone.className = 'zone';
+    zone.dataset.cat = cat.id;
+    zone.innerHTML = `<div class="zone-title">${cat.title}</div><div class="zone-chips" id="zone-chips-${cat.id}"></div>`;
+    zone.addEventListener('click', (e) => {
+      if (e.target.closest('.chip')) return; // handled by chip click
+      if (selectedChipId) {
+        placement[selectedChipId] = cat.id;
+        selectedChipId = null;
+        renderPool();
+        renderZones();
+      }
+    });
+    zonesContainer.appendChild(zone);
+
+    const chipsHolder = zone.querySelector('.zone-chips');
+    connectors.filter(c => placement[c.id] === cat.id).forEach(c => {
+      const chip = document.createElement('div');
+      chip.className = 'chip placed';
+      chip.textContent = c.text;
+      chip.title = 'Cliquez pour retirer';
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        delete placement[c.id];
+        renderPool();
+        renderZones();
+      });
+      chipsHolder.appendChild(chip);
+    });
+  });
+}
+
+renderPool();
+renderZones();
+
+document.getElementById('sort-check').addEventListener('click', () => {
+  let score = 0;
+  connectors.forEach(c => {
+    // find chip element wherever it is placed
+    const el = [...document.querySelectorAll('.chip')].find(d => d.textContent === c.text);
+    if (!el) return;
+    el.classList.remove('correct','incorrect');
+    if (placement[c.id] === c.cat) {
+      el.classList.add('correct');
+      score++;
+    } else if (placement[c.id]) {
+      el.classList.add('incorrect');
+    }
+  });
+  const box = document.getElementById('sort-score');
+  box.classList.add('show');
+  const unplaced = connectors.length - Object.keys(placement).length;
+  box.textContent = `Score : ${score} / ${connectors.length}` + (unplaced > 0 ? ` (${unplaced} connecteur(s) non classé(s))` : '') + ' — les connecteurs mal classés apparaissent en rouge.';
+});
+
+document.getElementById('sort-reset').addEventListener('click', () => {
+  Object.keys(placement).forEach(k => delete placement[k]);
+  selectedChipId = null;
+  document.getElementById('sort-score').classList.remove('show');
+  renderPool();
+  renderZones();
+});
+</script>
+</body>
+</html>
