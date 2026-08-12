@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Diagnostic B2</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body{font-family:Arial,sans-serif;margin:0;background:#f7f4ee;color:#3f3428}
+  .wrap{max-width:1200px;margin:0 auto;padding:32px 20px}
+  .card{background:#fff;border:1px solid #ddd3c2;border-radius:14px;padding:22px;box-shadow:0 3px 12px rgba(0,0,0,.05)}
+  h1{margin-top:0}
+  .muted{color:#756b60}
+  #dashboard{display:none}
+  #login{max-width:430px;margin:70px auto}
+  label{display:block;font-weight:600;margin:14px 0 6px}
+  input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cfc5b5;border-radius:8px;font-size:16px}
+  button{margin-top:16px;padding:11px 18px;border:0;border-radius:8px;cursor:pointer;font-weight:600}
+  .primary{background:#6b5138;color:#fff}
+  .secondary{background:#e9e1d5;color:#3f3428}
+  .error{color:#a33;margin-top:12px}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:20px 0}
+  .stat strong{display:block;font-size:28px;margin-top:8px}
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{padding:11px 9px;border-bottom:1px solid #e6dfd5;text-align:left;white-space:nowrap}
+  th{background:#faf7f0}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px}
+  @media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="login" class="card">
+    <h1>Dashboard — Diagnostic B2</h1>
+    <p class="muted">Accès réservé à l’enseignante.</p>
+
+    <label for="email">Adresse e-mail</label>
+    <input id="email" type="email" autocomplete="email">
+
+    <label for="password">Mot de passe</label>
+    <input id="password" type="password" autocomplete="current-password">
+
+    <button id="loginBtn" class="primary">Se connecter</button>
+    <div id="loginError" class="error"></div>
+  </section>
+
+  <section id="dashboard">
+    <div class="topbar">
+      <div>
+        <h1>Dashboard — Diagnostic B2</h1>
+        <p class="muted">Résultats enregistrés dans Supabase</p>
+      </div>
+      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+    </div>
+
+    <div class="stats">
+      <div class="card"><span class="muted">Participants</span><strong id="count">—</strong></div>
+      <div class="card"><span class="muted">Moyenne générale</span><strong><span id="avgTotal">—</span> / 39</strong></div>
+      <div class="card"><span class="muted">QCM</span><strong><span id="avgQcm">—</span> / 12</strong></div>
+      <div class="card"><span class="muted">Texte à trous</span><strong><span id="avgCloze">—</span> / 12</strong></div>
+      <div class="card"><span class="muted">Connecteurs</span><strong><span id="avgSort">—</span> / 15</strong></div>
+    </div>
+
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <h2>Résultats individuels</h2>
+          <p id="status" class="muted">Chargement…</p>
+        </div>
+        <button id="refreshBtn" class="secondary">Actualiser</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Étudiant</th>
+              <th>E-mail</th>
+              <th>Total</th>
+              <th>QCM</th>
+              <th>Texte</th>
+              <th>Connecteurs</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const SUPABASE_URL = "https://vmghlokozykmunmwsovg.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_coBbG0JQdOpS9mQJri3wAA_SMuoYlVO";
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const login = document.getElementById("login");
+const dashboard = document.getElementById("dashboard");
+const loginError = document.getElementById("loginError");
+
+function showDashboard(){ login.style.display="none"; dashboard.style.display="block"; }
+function showLogin(){ login.style.display="block"; dashboard.style.display="none"; }
+
+async function loadResults(){
+  const status = document.getElementById("status");
+  status.textContent = "Chargement des résultats…";
+
+  const { data, error } = await supabaseClient
+    .from("results")
+    .select("student_name,student_email,score,total,qcm_score,cloze_score,sort_score,created_at")
+    .order("created_at", { ascending:false });
+
+  if(error){
+    status.textContent = "Impossible de charger les résultats.";
+    console.error(error);
+    return;
+  }
+
+  const rows = data || [];
+  const avg = key => rows.length ? (rows.reduce((s,r)=>s + Number(r[key] || 0),0)/rows.length) : 0;
+
+  document.getElementById("count").textContent = rows.length;
+  document.getElementById("avgTotal").textContent = avg("score").toFixed(1);
+  document.getElementById("avgQcm").textContent = avg("qcm_score").toFixed(1);
+  document.getElementById("avgCloze").textContent = avg("cloze_score").toFixed(1);
+  document.getElementById("avgSort").textContent = avg("sort_score").toFixed(1);
+
+  const body = document.getElementById("resultsBody");
+  body.innerHTML = rows.map(r => {
+    const date = r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "—";
+    const studentName = r.student_name ? escapeHtml(r.student_name) : "Nom non renseigné";
+    const studentEmail = r.student_email ? escapeHtml(r.student_email) : "E-mail non renseigné";
+    return `<tr>
+      <td>${studentName}</td>
+      <td>${studentEmail}</td>
+      <td>${r.score ?? "—"}/${r.total ?? 39}</td>
+      <td>${r.qcm_score ?? "—"}/12</td>
+      <td>${r.cloze_score ?? "—"}/12</td>
+      <td>${r.sort_score ?? "—"}/15</td>
+      <td>${escapeHtml(date)}</td>
+    </tr>`;
+  }).join("");
+
+  status.textContent = `${rows.length} résultat(s)`;
+}
+
+function escapeHtml(value){
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+document.getElementById("loginBtn").addEventListener("click", async ()=>{
+  loginError.textContent = "";
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const { error } = await supabaseClient.auth.signInWithPassword({email,password});
+
+  if(error){
+    loginError.textContent = "Connexion impossible : " + error.message;
+    return;
+  }
+  showDashboard();
+  await loadResults();
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  await supabaseClient.auth.signOut();
+  showLogin();
+});
+
+document.getElementById("refreshBtn").addEventListener("click", loadResults);
+
+(async ()=>{
+  const { data } = await supabaseClient.auth.getSession();
+  if(data.session){
+    showDashboard();
+    await loadResults();
+  }
+})();
+</script>
+</body>
+</html>
