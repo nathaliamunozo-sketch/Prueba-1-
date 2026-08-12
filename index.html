@@ -105,6 +105,7 @@
   .cloze-text input.ok{ background: var(--ok-bg); border-bottom-color: var(--ok); color: var(--ok); }
   .cloze-text input.bad{ background: var(--bad-bg); border-bottom-color: var(--bad); color: var(--bad); }
   .hint{ font-size:11px; color:#8a836f; vertical-align: super; }
+  .verb-prompt{ font-weight:600; color:var(--brown); white-space:nowrap; }
 
   /* ACTIVITE 3 : TRI DES CONNECTEURS */
   .sort-pool{
@@ -139,6 +140,35 @@
   footer{ margin-top:64px; padding-top:24px; border-top:1px solid #E4DCC8; color:#8a836f; font-size:13px; text-align:center; }
 
   @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
+  .student-info{
+    max-width:760px;
+    margin:0 auto 28px;
+    padding:20px;
+    border-radius:12px;
+    border:1px solid #ddd3c2;
+    background:#faf7f0;
+  }
+  .student-info h2{ margin-top:0; }
+  .student-info label{
+    display:block;
+    margin:12px 0 6px;
+    font-weight:600;
+  }
+  .student-info input{
+    width:100%;
+    box-sizing:border-box;
+    padding:10px 12px;
+    border:1px solid #cfc5b5;
+    border-radius:8px;
+    font:inherit;
+    background:#fff;
+  }
+  .student-info .error-message{
+    margin-bottom:0;
+    color:#a33;
+  }
+
 </style>
 </head>
 <body>
@@ -159,7 +189,23 @@
 <div class="wrap">
 
   <!-- ACTIVITÉ 1 : QCM -->
-  <section id="qcm-section">
+  
+<section id="student-info" class="student-info" aria-label="Identification">
+  <h2>Identification</h2>
+  <p>Avant de commencer, indiquez votre nom et votre adresse e-mail.</p>
+
+  <label for="student-name">Nom et prénom</label>
+  <input id="student-name" type="text" autocomplete="name" required>
+
+  <label for="student-email">Adresse e-mail</label>
+  <input id="student-email" type="email" autocomplete="email" required>
+
+  <p id="student-info-error" class="error-message" role="alert" hidden>
+    Veuillez renseigner votre nom et une adresse e-mail valide avant de commencer.
+  </p>
+</section>
+
+<section id="qcm-section">
     <div class="sec-head">
       <span class="sec-num">1</span>
       <h2>Questionnaire à choix multiples</h2>
@@ -217,6 +263,60 @@
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =================== CONNEXION SUPABASE =================== */
+const SUPABASE_URL = "https://vmghlokozykmunmwsovg.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_coBbG0JQdOpS9mQJri3wAA_SMuoYlVO";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+let qcmScore = null;
+let clozeScore = null;
+let sortScore = null;
+let resultsSaved = false;
+let studentName = "";
+let studentEmail = "";
+
+async function saveResultsIfReady() {
+  if (resultsSaved || qcmScore === null || clozeScore === null || sortScore === null) return;
+
+  const totalScore = qcmScore + clozeScore + sortScore;
+
+  studentName = document.getElementById("student-name")?.value.trim() || "";
+  studentEmail = document.getElementById("student-email")?.value.trim() || "";
+
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentEmail);
+  const errorBox = document.getElementById("student-info-error");
+
+  if (!studentName || !emailIsValid) {
+    if (errorBox) {
+      errorBox.hidden = false;
+      errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    return;
+  }
+
+  if (errorBox) errorBox.hidden = true;
+
+  const { error } = await supabaseClient.from("results").insert({
+    student_name: studentName,
+    student_email: studentEmail,
+    score: totalScore,
+    total: 39,
+    qcm_score: qcmScore,
+    cloze_score: clozeScore,
+    sort_score: sortScore
+  });
+
+  if (error) {
+    console.error("Erreur lors de l'enregistrement dans Supabase :", error);
+    return;
+  }
+
+  resultsSaved = true;
+  console.log("Résultat enregistré dans Supabase.");
+}
+</script>
 <script>
 /* =================== ACTIVITÉ 1 : QCM =================== */
 const qcmData = [
@@ -337,6 +437,8 @@ document.getElementById('qcm-check').addEventListener('click', () => {
   const box = document.getElementById('qcm-score');
   box.classList.add('show');
   box.textContent = `Score : ${score} / 12 — ` + (score >= 10 ? "Très solide maîtrise, prêt pour l'entraînement intensif." : score >= 6 ? "Bases présentes, quelques points à revoir ensemble." : "Un retour ciblé sur ces structures est recommandé avant l'entraînement DELF.");
+  qcmScore = score;
+  saveResultsIfReady();
 });
 
 /* =================== ACTIVITÉ 2 : TEXTE À TROUS =================== */
@@ -379,7 +481,28 @@ clozeSegments.forEach(seg => {
     input.dataset.answers = JSON.stringify(seg.answers);
     input.autocomplete = 'off';
     input.spellcheck = false;
+
+    // Indice visible entre crochets pour les verbes à conjuguer.
+    const verbHints = {
+      1: 'se trouver',
+      3: 'arriver',
+      4: 'être',
+      6: 'investir',
+      7: 'se développer',
+      9: 'respecter',
+      12: 'être'
+    };
+
+    if (verbHints[seg.id]) {
+      const hint = document.createElement('span');
+      hint.className = 'verb-prompt';
+      hint.textContent = `[${verbHints[seg.id]}]`;
+      clozeContainer.appendChild(hint);
+      clozeContainer.appendChild(document.createTextNode(' '));
+    }
+
     clozeContainer.appendChild(input);
+
     const sup = document.createElement('span');
     sup.className = 'hint';
     sup.textContent = ` (${seg.id})`;
@@ -408,6 +531,8 @@ document.getElementById('cloze-check').addEventListener('click', () => {
   const box = document.getElementById('cloze-score');
   box.classList.add('show');
   box.textContent = `Score : ${score} / ${total} — Les champs en rouge indiquent une erreur (survolez le champ pour voir la réponse attendue).`;
+  clozeScore = score;
+  saveResultsIfReady();
 });
 
 document.getElementById('cloze-reset').addEventListener('click', () => {
@@ -529,6 +654,8 @@ document.getElementById('sort-check').addEventListener('click', () => {
   box.classList.add('show');
   const unplaced = connectors.length - Object.keys(placement).length;
   box.textContent = `Score : ${score} / ${connectors.length}` + (unplaced > 0 ? ` (${unplaced} connecteur(s) non classé(s))` : '') + ' — les connecteurs mal classés apparaissent en rouge.';
+  sortScore = score;
+  saveResultsIfReady();
 });
 
 document.getElementById('sort-reset').addEventListener('click', () => {
